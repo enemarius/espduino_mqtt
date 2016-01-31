@@ -40,7 +40,7 @@
         pulled high
         3V3 only
 
-# INFO
+# Boot info
     
     default startup baudrate: 74880 then changes to 115200
     
@@ -118,7 +118,7 @@
         
     red led should blink(GPIO0)
 
-
+# MQTT
 
 
 
