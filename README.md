@@ -4,6 +4,10 @@
     Board: Adafruit Huzzah ESP8266
     IC: ESP8266 - E12
 
+# TODO:
+    
+    - Test MQTT->ESP8266... example.
+    
 # GPIO pins
 
     GPIO #0
@@ -120,15 +124,44 @@
 
 # MQTT
 
+    CLIENT
+        Publisher
+        Subscriber
+    BROKER
+    
+                CONNECT
+    CLIENT -----------------------> BROKER
+    CLIENT <----------------------- BROKER
+                CONNACK
 
 
+        CONNECT message - sent to initiate connection
+            clientId                "client_1"          - unique per broker
+            cleanSession            true                - false = persisten session = broker stores all subscriptions and missed messages when QoS 1,2.
+            username(opt)           "marius"            -
+            password(opt)           "letmein"           -
+            lastWillTopic(opt)      "/marius/will"      -
+            lastWillQos(opt)        2                   -
+            lastWillMessage(opt)    "bye bye..."        -
+            keepAlive               60                  -
 
+            clientId        - unique per broker
+            cleanSession    - "false" = persistent session = broker stores all subscriptions and missed messages when QoS 1,2.
+            user/pass       - sent in plaintext
+            willMessage     - notify other clients when disconnects ungracefully
+        
+        CONNACK message
+            sessionPresent          true
+            returnCode              0
 
-
-
-
-
-
+            sessionPresent  - always false if  cleanSession=true. if true, no need to subscribe to topics again
+            returnCode      - 0 : Connection Accepted
+                              1 : Connection Refused, unacceptable protocol version
+                              2 : Connection Refused, identifier rejected
+                              3 : Connection Refused, Server unavailable
+                              4 : Connection Refused, bad user name or password
+                              5 : Connection Refused, not authorized
+                              
 
 
 
