@@ -1,29 +1,46 @@
-# espduino_mqtt
+# ESP8266 - MQTT
 
     ESP8266 MQTT projects using Arduino IDE and Adafruit Huzzah board
     Board: Adafruit Huzzah ESP8266
     IC: ESP8266 - E12
-
-# TODO:
     
-    - Test MQTT->ESP8266... example.
-    
-# GPIO pins
+## GPIO pins
 
-    GPIO #0
-        boot pin - switch, no pullup
-            if held low, starts bootloading
-        red LED
+    V+
+        schottky diode(can connect both V+ and Vbat to different voltages)
+
+    Vbat
+        schottky diode(can connect both V+ and Vbat to different voltages)
+
+    3V3
+        output from internal regulator
         
-    GPIO #2
-        boot pin - no switch, pullup
-        blue LED
+    RX
+        5V compliant
+        includes a level shifter
+        
+    TX
+        3V3 output
+    
+    GPIO pins
+        3V3, not 5V compatible!
+        max current drawn 12mA
+        
+        GPIO #0
+            boot pin - switch, no pullup
+                if held low at powerup, starts bootloading
+            red LED, can also be used as output
+            
+        GPIO #2
+            boot pin - no switch, pullup
+            blue LED, can also be used as output
 
-    GPIO #15
-        boot pin - no switch, pulldown
-     
-    GPIO #16
-        wakeup from deep sleep
+        GPIO #15
+            boot pin - no switch, pulldown
+            can also be used as output
+         
+        GPIO #16
+            wakeup from deep sleep
         
     A 
         analog input
@@ -34,6 +51,7 @@
         pin enable for LDO regulator
         10K pullup to V+ or Vbat(which is greater)
         pulldown to disable power
+        5V compliant
         
     /RST
         pulled high
@@ -44,7 +62,7 @@
         pulled high
         3V3 only
 
-# Boot info
+## Boot info
     
     default startup baudrate: 74880 then changes to 115200
     
@@ -90,7 +108,7 @@
         User Data           0x0F C000 – 0x3F BFFF       3072KB
         System params       0x3F C000 – 0x3F FFFF       16KB
 
-# Arduino IDE setup and use
+## Arduino IDE setup and use
 
     https://learn.adafruit.com/adafruit-huzzah-esp8266-breakout/using-arduino-ide
     
@@ -100,7 +118,9 @@
 
     115200 baud upload speed
 
-    Blink test:
+    ### Blink test:
+    
+        ```c
         void setup() {
           pinMode(0, OUTPUT);
         }
@@ -111,6 +131,7 @@
           digitalWrite(0, LOW);
           delay(500);
         }
+        ```
 
     put the board into bootload mode:
         Hold down the GPIO0 button, the red LED will be lit
@@ -121,8 +142,63 @@
     upload the sketch via the IDE
         
     red led should blink(GPIO0)
+    
+    ### Connect to wifi test:
+        
+        ```c
+        /*
+         *  This sketch demonstrates how to scan WiFi networks. 
+         *  The API is almost the same as with the WiFi Shield library, 
+         *  the most obvious difference being the different file you need to include:
+         */
+        #include "ESP8266WiFi.h"
 
-# MQTT
+        void setup() {
+          Serial.begin(115200);
+
+          // Set WiFi to station mode and disconnect from an AP if it was previously connected
+          WiFi.mode(WIFI_STA);
+          WiFi.disconnect();
+          delay(100);
+
+          Serial.println("Setup done");
+        }
+
+        void loop() {
+          Serial.println("scan start");
+
+          // WiFi.scanNetworks will return the number of networks found
+          int n = WiFi.scanNetworks();
+          Serial.println("scan done");
+          if (n == 0)
+            Serial.println("no networks found");
+          else
+          {
+            Serial.print(n);
+            Serial.println(" networks found");
+            for (int i = 0; i < n; ++i)
+            {
+              // Print SSID and RSSI for each network found
+              Serial.print(i + 1);
+              Serial.print(": ");
+              Serial.print(WiFi.SSID(i));
+              Serial.print(" (");
+              Serial.print(WiFi.RSSI(i));
+              Serial.print(")");
+              Serial.println((WiFi.encryptionType(i) == ENC_TYPE_NONE)?" ":"*");
+              delay(10);
+            }
+          }
+          Serial.println("");
+
+          // Wait a bit before scanning again
+          delay(5000);
+        }
+        ```
+
+# MQTT protocol info
+
+    ## Message structure
 
     CLIENT
         Publisher
@@ -136,14 +212,14 @@
 
 
         CONNECT message - sent to initiate connection
-            clientId                "client_1"          - unique per broker
-            cleanSession            true                - false = persisten session = broker stores all subscriptions and missed messages when QoS 1,2.
-            username(opt)           "marius"            -
-            password(opt)           "letmein"           -
-            lastWillTopic(opt)      "/marius/will"      -
-            lastWillQos(opt)        2                   -
-            lastWillMessage(opt)    "bye bye..."        -
-            keepAlive               60                  -
+            clientId                "client_1"          
+            cleanSession            true                
+            username(opt)           "marius"           
+            password(opt)           "letmein"          
+            lastWillTopic(opt)      "/marius/will"      
+            lastWillQos(opt)        2                  
+            lastWillMessage(opt)    "bye bye..."        
+            keepAlive               60                  
 
             clientId        - unique per broker
             cleanSession    - "false" = persistent session = broker stores all subscriptions and missed messages when QoS 1,2.
@@ -162,7 +238,221 @@
                               4 : Connection Refused, bad user name or password
                               5 : Connection Refused, not authorized
                               
-git test---to delete
+                PUBLISH                             PUBLISH
+    CLIENT -----------------------> BROKER -----------------------> CLIENT
+
+        PUBLISH message
+            packetId                4314       
+            topicName               "myhome/livingroom/temperature"
+            qos                     1
+            retainFlag              false
+            payload                 "temperature:32.5"
+            dupFlag                 false
+            
+            
+            packetId    - per msg, always 0 for QoS = 0
+            qos         - 
+            retainFlag  - if msg is saved by broker as last known good value for that topic
+            dupFlag     - true if msg is resent, because no ACK was received previously
+
+
+                SUBSCRIBE (1)                       PUBLISH (3)
+    CLIENT -----------------------> BROKER <----------------------- CLIENT
+                SUBACK (2)
+    CLIENT <----------------------- BROKER
+                PUBLISH (4)
+    CLIENT <----------------------- BROKER
+
+        SUBSCRIBE message
+            packetId                4313
+            qos1                    1
+            topic1                  "myhome/livingroom/temperature"
+            qos2                    0
+            topic2                  "myhome/livingroom/temperature"
+            ...                     ...
+            
+            packetId    - per msg, always 0 for QoS = 0
+            qos1/topic1 - list of subscriptions, can also contain wildcards
+    
+        SUBACK message
+            packetId                4313
+            returnCode1             2
+            returnCode2             0
+            ...                     ...
+
+            packetId    - same as in SUBSCRIBE message
+            returnCode  - one returnCode for each SUBSCRIVE topic, in the same order
+                        - 0   : Success - Maximum QoS 0 
+                          1   : Success - Maximum QoS 1
+                          2   : Success - Maximum QoS 2
+                          128 : Failure
+
+                UNSUBSCRIBE
+    CLIENT -----------------------> BROKER
+    CLIENT <----------------------- BROKER
+                UNSUBACK
+                
+        UNSUBSCRIBE message
+            packetId                4313
+            topic1                  "myhome/livingroom/temperature"
+            topic2                  "myhome/livingroom/temperature"
+            ...                     ...
+    
+        UNSUBACK message
+            packetId                4313
+    
+            packetId    - same as in UNSUBSCRIBE message
+
+
+    ## Topics
+    
+    - "myhome/goundfloor/livingroom/temperature"
+    - "myhome"  = topic level
+    - "/"       = topic level separator
+    - can contain spaces, not recommended
+    - is case sensitive, use lower case only
+    - "/" valid topic, root like, don`t use it at start
+    - "$" special start character: $SYS/broker/uptime
+        - client cannot publish to these topics
+
+    Wildcards:
+        - Single level:
+            - "+":  matches any topic from that level
+                    "myhome/goundfloor/+/temperature"
+                    
+                        "myhome/goundfloor/livingroom/temperature"      OK
+                        "myhome/goundfloor/kitchen/temperature"         OK
+                        "myhome/goundfloor/kitchen/brightness"          NOK
+                        "myhome/firstfloor/kitchen/temperature"         NOK
+                        "myhome/goundfloor/kitchen/fridge/temperature"  NOK
+        - Multi level:
+            - "#":  mathecs any topics from that level below
+                    has to be the last character of the topic
+                    "myhome/goundfloor/#"
+
+                        "myhome/goundfloor/livingroom/temperature"      OK
+                        "myhome/goundfloor/kitchen/temperature"         OK
+                        "myhome/goundfloor/kitchen/brightness"          OK
+                        "myhome/firstfloor/kitchen/temperature"         NOK
+
+    ## QoS
+    
+        QoS for Publish:    Client --> Broker
+            QoS level set by the client for a that sent msg
+        Qos for Subscribe   Broker --> Client
+            QoS level set by the other client, which has subscribed to broker
+            
+        - the QoS level can be degraded, if a client subscribes with a lower QoS
+          than the one used by the client which published the msg.
+    
+        0 = at most once
+            msg not ACK by receiver(broker)
+            msg not stored and redelivered by sender(client)
+            "fire and forget"
+            same guarantee as the TCP underneath
+            
+                        PUBLISH QoS 0
+            CLIENT -----------------------> BROKER
+            
+        1 = at least once
+            guaranteed the msg is delivered at least once to receiver(broker)
+            the message can also be delivered more than once
+            the sender stores the message until receives PUBACK from receiver
+            
+                        PUBLISH QoS 1
+            CLIENT -----------------------> BROKER
+                        PUBACK
+            CLIENT <----------------------- BROKER
+            
+        2 = exactly once
+            guarantees that each message is received only once by the counterpart
+            safest and slowest
+            PUBREC  = ack message from broker -> the client can discard the copy of the msg
+            PUBREL  = ack from client to broker -> the broker can discard any saved state
+            PUBCOMP = the flow is complete
+
+                        PUBLISH QoS 2
+            CLIENT -----------------------> BROKER
+                        PUBREC
+            CLIENT <----------------------- BROKER
+                        PUBREL
+            CLIENT -----------------------> BROKER
+                        PUBCOMP
+            CLIENT <----------------------- BROKER
+
+        Use QoS 0 when:
+            - stable connection, wired network
+            - don`t care if some msg are lost sometimes
+            - don`t need msg queing, for disconnected clients
+
+        Use QoS 1 when:
+            - need the get every msg
+            - can handle duplicates
+            - you can`t bear the overhead of QoS 2
+        
+        Use QoS 2 when:
+            - you need to receive a msg exactly once
+
+        **Note**:   All msg sent with QoS 1 and 2 will be qued for offline clients,
+                    if they subscribed with a "persisten session".
+
+    ### Persistent/Clean session
+        
+        Use a Persistent session when:
+            - a client must get all msg, even if it is offline
+            - a client has limited resources and the broker should hold the subscriptions
+        
+        Use a Clean session when:
+            - a client is only publishing to broker, not subscribing
+            - a client does not need the msg from when it was offline
+
+# MQTT security
+
+    TODO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
