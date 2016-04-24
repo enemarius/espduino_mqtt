@@ -118,9 +118,9 @@
 
     115200 baud upload speed
 
-    ### Blink test:
+    ### Blink test
     
-        ```c
+        ```javascript
         void setup() {
           pinMode(0, OUTPUT);
         }
@@ -143,9 +143,9 @@
         
     red led should blink(GPIO0)
     
-    ### Connect to wifi test:
+    ### Connect to wifi test
         
-        ```c
+        ```javascript
         /*
          *  This sketch demonstrates how to scan WiFi networks. 
          *  The API is almost the same as with the WiFi Shield library, 
