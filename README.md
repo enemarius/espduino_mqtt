@@ -419,6 +419,7 @@
 		sudo apt-get install python-pip python-dev build-essential  		or sudo apt-get install python3-pip python3-dev build-essential
 		pip install paho-mqtt 		or pip3 install paho-mqtt
 	Check mosquitto server is on, and using port 1883:
+		sudo /etc/init.d/mosquitto status
 		sudo lsof -i TCP:1883
 		netstat –an (on Windows)
 	Subscribe to topic 'test':
@@ -437,12 +438,18 @@
 		In terminal window 2:
 			mosquitto_pub -d -t hello/world -m "Hello from Terminal window 2!"
 
+	Debug tools:
+		'mosquitto_tools' - command line utilities
+		'mqtt.fx' - gui stuff
+		'mymqtt' - android
+		'wireshark' 
+			filter: ip.src==192.168.1.108
 
-
-
-
-
-
+	Start the Mosquitto server with a configuration file:
+		sudo /etc/init.d/mosquitto stop									stop m. deamon
+		sudo lsof -i TCP:1883											check deamon is stopped, by inspecting the default mqtt port. no output is expected
+		sudo /etc/init.d/mosquitto start -c ~/mosquitto.conf -v			start m. deamon with config file and verbose mode		
+		sudo lsof -i TCP:1883
 
 
 
