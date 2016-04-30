@@ -410,9 +410,32 @@
 
     TODO...
 
+# MQTT server - Mosquitto
 
+	Install server and clients(pub sub):
+		sudo apt-get install mosquitto
+		sudo apt-get install mosquitto-clients
+		--- optional
+		sudo apt-get install python-pip python-dev build-essential  		or sudo apt-get install python3-pip python3-dev build-essential
+		pip install paho-mqtt 		or pip3 install paho-mqtt
+	Check mosquitto server is on, and using port 1883:
+		sudo lsof -i TCP:1883
+		netstat –an (on Windows)
+	Subscribe to topic 'test':
+		mosquitto_sub -t test -d
+	Publish to 'test' content of file
+		mosquitto_pub -t test -f mqtt_pub.txt -d
 
-
+	Test sequence	
+	
+		Stop the deamon:
+			sudo /etc/init.d/mosquitto stop
+		Start the deamon:
+			sudo /etc/init.d/mosquitto start
+		In terminal window 1:
+			mosquitto_sub -d -t hello/world
+		In terminal window 2:
+			mosquitto_pub -d -t hello/world -m "Hello from Terminal window 2!"
 
 
 
