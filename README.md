@@ -41,7 +41,12 @@
          
         GPIO #16
             wakeup from deep sleep
-        
+        ..............
+        GPIO #4
+        GPIO #5
+        GPIO #12
+        GPIO #13
+        GPIO #14
     A 
         analog input
         0 - 1V range

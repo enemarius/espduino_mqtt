@@ -1,6 +1,14 @@
 #include <ESP8266WiFi.h>
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
+#include "OneWire.h"
+#include "DallasTemperature.h"
+
+/************************* 1Wire Setup *********************************/
+#define ONE_WIRE_BUS  13
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature DS18B20(&oneWire);
+float temp = 0;
 
 /************************* WiFi Access Point *********************************/
 
@@ -34,8 +42,11 @@ Adafruit_MQTT_Client mqtt(&client, MQTT_SERVER, AIO_SERVERPORT, MQTT_USERNAME, M
 
 // Setup a feed called 'photocell' for publishing.
 // Notice MQTT paths for AIO follow the form: <username>/feeds/<feedname>
-const char PHOTOCELL_FEED[] PROGMEM = "/esp8266/feeds/photocell";
-Adafruit_MQTT_Publish photocell = Adafruit_MQTT_Publish(&mqtt, PHOTOCELL_FEED, MQTT_QOS_1);
+//const char PHOTOCELL_FEED[] PROGMEM = "/esp8266/feeds/photocell";
+//Adafruit_MQTT_Publish photocell = Adafruit_MQTT_Publish(&mqtt, PHOTOCELL_FEED, MQTT_QOS_1);
+const char TEMP_FEED[] PROGMEM = "/esp8266/feeds/temp";
+Adafruit_MQTT_Publish tempFeed = Adafruit_MQTT_Publish(&mqtt, TEMP_FEED, MQTT_QOS_1);
+
 
 // Setup a feed called 'onoff' for subscribing to changes.
 const char ONOFF_FEED[] PROGMEM = "/esp8266/feeds/onoff";
@@ -69,7 +80,7 @@ void setup() {
   Serial.println("IP address: "); Serial.println(WiFi.localIP());
 
   // Setup MQTT subscription for onoff feed.
-  mqtt.subscribe(&onoffbutton);
+  //mqtt.subscribe(&onoffbutton);
 }
 
 uint32_t x=0;
@@ -91,11 +102,17 @@ void loop() {
     }
   }*/
 
+  /* Temperature read */
+  DS18B20.requestTemperatures();
+  temp = DS18B20.getTempCByIndex(0);
+  Serial.print("Temperature: ");
+  Serial.println(temp);
+  
   // Now we can publish stuff!
-  Serial.print(F("\nSending photocell val "));
-  Serial.print(x);
+  Serial.print(F("\nSending temp val "));
+  Serial.print(temp);
   Serial.print("...");
-  if (! photocell.publish(x++)) {
+  if (! tempFeed.publish(temp)) {
     Serial.println(F("Failed"));
   } else {
     Serial.println(F("OK!"));
@@ -108,8 +125,8 @@ void loop() {
     mqtt.disconnect();
   }
   */
-
-  ESP.deepSleep(30000000);
+  
+  ESP.deepSleep(30000000);    // Sleep for 30 seconds
 }
 
 // Function to connect and reconnect as necessary to the MQTT server.
