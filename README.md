@@ -222,7 +222,7 @@
             keepAlive               60                  
 
             clientId        - unique per broker
-            cleanSession    - "false" = persistent session = broker stores all subscriptions and missed messages when QoS 1,2.
+            cleanSession    - "false" = persistent session = broker stores all subscriptions and missed messages when client subscribes with QoS 1,2.
             user/pass       - sent in plaintext
             willMessage     - notify other clients when disconnects ungracefully
         

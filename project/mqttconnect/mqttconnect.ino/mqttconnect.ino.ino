@@ -35,11 +35,11 @@ Adafruit_MQTT_Client mqtt(&client, MQTT_SERVER, AIO_SERVERPORT, MQTT_USERNAME, M
 // Setup a feed called 'photocell' for publishing.
 // Notice MQTT paths for AIO follow the form: <username>/feeds/<feedname>
 const char PHOTOCELL_FEED[] PROGMEM = "/esp8266/feeds/photocell";
-Adafruit_MQTT_Publish photocell = Adafruit_MQTT_Publish(&mqtt, PHOTOCELL_FEED);
+Adafruit_MQTT_Publish photocell = Adafruit_MQTT_Publish(&mqtt, PHOTOCELL_FEED, MQTT_QOS_1);
 
 // Setup a feed called 'onoff' for subscribing to changes.
 const char ONOFF_FEED[] PROGMEM = "/esp8266/feeds/onoff";
-Adafruit_MQTT_Subscribe onoffbutton = Adafruit_MQTT_Subscribe(&mqtt, ONOFF_FEED);
+Adafruit_MQTT_Subscribe onoffbutton = Adafruit_MQTT_Subscribe(&mqtt, ONOFF_FEED, MQTT_QOS_1);
 
 /*************************** Sketch Code ************************************/
 
@@ -83,13 +83,13 @@ void loop() {
   // this is our 'wait for incoming subscription packets' busy subloop
   // try to spend your time here
 
-  Adafruit_MQTT_Subscribe *subscription;
+  /*Adafruit_MQTT_Subscribe *subscription;
   while ((subscription = mqtt.readSubscription(5000))) {
     if (subscription == &onoffbutton) {
       Serial.print(F("Got: "));
       Serial.println((char *)onoffbutton.lastread);
     }
-  }
+  }*/
 
   // Now we can publish stuff!
   Serial.print(F("\nSending photocell val "));
@@ -108,6 +108,8 @@ void loop() {
     mqtt.disconnect();
   }
   */
+
+  ESP.deepSleep(30000000);
 }
 
 // Function to connect and reconnect as necessary to the MQTT server.
