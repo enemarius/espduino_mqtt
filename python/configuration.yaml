@@ -1,0 +1,90 @@
+homeassistant:
+  # Name of the location where Home Assistant is running
+  name: Casa dulce bloc
+  # Location required to calculate the time the sun rises and sets
+  latitude: 44.4186
+  longitude: 26.0622
+  # C for Celsius, F for Fahrenheit
+  temperature_unit: C
+  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone: Europe/Bucharest
+  customize: !include customized.yaml
+
+# Example configuration.yaml entry
+#sensor:
+#  platform: time_date
+#  display_options:
+#    - 'time'
+#    - 'date'
+#    - 'date_time'
+#    - 'time_date'
+#    - 'time_utc'
+#    - 'beat'
+
+camera:
+  platform: mjpeg
+  mjpeg_url: http://127.0.0.1:8081/
+  name: My webcam
+  username: marius
+  password: 1234
+
+# MQTT section
+mqtt:
+  broker: 127.0.0.1
+  port: 1883
+  client_id: home-assistant-1
+  keepalive: 60
+#  username: USERNAME
+#  password: PASSWORD
+#  certificate: /home/paulus/dev/addtrustexternalcaroot.crt
+#  protocol: 3.1    may be needed as workaround
+
+switch:
+  - platform: mqtt
+    name: "led1"
+    state_topic: "hass/led/state"
+    command_topic: "hass/led/command"
+    payload_on: "on"
+    payload_off: "off"
+#  retain: true
+  
+sensor:
+  platform: mqtt
+  name: "Bath Temp"
+  state_topic: "hass/bath/temp"
+  qos: 0
+  unit_of_measurement: "°C"
+#  value_template: '{{value.x}}'
+#  value: 'x'
+
+
+
+
+# View all events in a logbook
+logbook:
+
+# Prediction of weather
+#sensor:
+#   platform: yr
+
+# Track the sun
+#sun:
+
+# Checks for available updates
+updater:
+
+# Discover some devices automatically
+#discovery:
+
+# Show links to resources in log and frontend
+#introduction:
+
+# Enables the frontend
+frontend:
+
+# Allows you to issue voice commands from the frontend
+#conversation:
+
+# Enables support for tracking state changes over time.
+history:
+

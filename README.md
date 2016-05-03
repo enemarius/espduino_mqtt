@@ -456,9 +456,38 @@
 		sudo /etc/init.d/mosquitto start -c ~/mosquitto.conf -v			start m. deamon with config file and verbose mode		
 		sudo lsof -i TCP:1883
 
+# Stream the webcam
+    
+    sudo apt-get install motion
+    sudo nano /etc/motion/motion.conf
+        daemon on
+        webcam_localhost off
+        etc...
+    sudo nano /etc/default/motion
+        start_motion_daemon=yes
+    sudo service motion start 
+        or
+    sudo motion
+		or
+	sudo /etc/init.d/motion start
+		
+    check 127.0.0.1:8081
+	check sudo lsof -i TCP:8081
 
+# Python Home Automation Web Interface
 
+## Python Home Assistant
 
+    Install Home Assistant (https://home-assistant.io/getting-started/)
+        $ sudo pip3 install homeassistant
+    Launch HA on http://192.168.1.104:8123/states
+        $ hass --open-ui
+
+    Allow outdoor connections in Ubuntu on the HA port:
+        $ sudo ufw allow 8123/tcp
+
+    Configure HA:
+        configuration folder is ~/.homeassistant, file is configuration.yaml (restart needed)
 
 
 

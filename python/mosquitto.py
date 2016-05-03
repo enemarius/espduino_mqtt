@@ -1,6 +1,8 @@
 #!/usr/bin/python3.5
 
 # The code uses the Paho Python client to connect to a MQTT broker running on localhost.
+# The code publishes to "mytopic" the time, every 20 seconds.
+# The code prints every message received on "hello/world".
 
 import paho.mqtt.client as mqtt
 import time

@@ -44,12 +44,15 @@ Adafruit_MQTT_Client mqtt(&client, MQTT_SERVER, AIO_SERVERPORT, MQTT_USERNAME, M
 // Notice MQTT paths for AIO follow the form: <username>/feeds/<feedname>
 //const char PHOTOCELL_FEED[] PROGMEM = "/esp8266/feeds/photocell";
 //Adafruit_MQTT_Publish photocell = Adafruit_MQTT_Publish(&mqtt, PHOTOCELL_FEED, MQTT_QOS_1);
-const char TEMP_FEED[] PROGMEM = "/esp8266/feeds/temp";
+const char TEMP_FEED[] PROGMEM = "hass/bath/temp";
 Adafruit_MQTT_Publish tempFeed = Adafruit_MQTT_Publish(&mqtt, TEMP_FEED, MQTT_QOS_1);
+
+const char LED_FEED[] PROGMEM = "hass/led/state";
+Adafruit_MQTT_Publish ledFeed = Adafruit_MQTT_Publish(&mqtt, LED_FEED, MQTT_QOS_1);
 
 
 // Setup a feed called 'onoff' for subscribing to changes.
-const char ONOFF_FEED[] PROGMEM = "/esp8266/feeds/onoff";
+const char ONOFF_FEED[] PROGMEM = "hass/led/command";
 Adafruit_MQTT_Subscribe onoffbutton = Adafruit_MQTT_Subscribe(&mqtt, ONOFF_FEED, MQTT_QOS_1);
 
 /*************************** Sketch Code ************************************/
@@ -59,6 +62,9 @@ Adafruit_MQTT_Subscribe onoffbutton = Adafruit_MQTT_Subscribe(&mqtt, ONOFF_FEED,
 void MQTT_connect();
 
 void setup() {
+  // Set GPIO#0 as output
+  pinMode(0, OUTPUT);
+  
   Serial.begin(115200);
   delay(10);
 
@@ -80,7 +86,7 @@ void setup() {
   Serial.println("IP address: "); Serial.println(WiFi.localIP());
 
   // Setup MQTT subscription for onoff feed.
-  //mqtt.subscribe(&onoffbutton);
+  mqtt.subscribe(&onoffbutton);
 }
 
 uint32_t x=0;
@@ -94,13 +100,38 @@ void loop() {
   // this is our 'wait for incoming subscription packets' busy subloop
   // try to spend your time here
 
-  /*Adafruit_MQTT_Subscribe *subscription;
+  Adafruit_MQTT_Subscribe *subscription;
   while ((subscription = mqtt.readSubscription(5000))) {
     if (subscription == &onoffbutton) {
+      char * receivedSubscription = (char *)onoffbutton.lastread;
       Serial.print(F("Got: "));
-      Serial.println((char *)onoffbutton.lastread);
+      Serial.println(receivedSubscription);
+
+      if(0 == strncmp("on",receivedSubscription,2))
+      {
+        digitalWrite(0, LOW);
+        if (! ledFeed.publish("on")) {
+          Serial.println(F("Failed LED ON publish"));
+        } else {
+          Serial.println(F("OK LED ON publish!"));
+        }
+      }
+      else if(0 == strncmp("off",receivedSubscription,3))
+      {
+        digitalWrite(0, HIGH);
+        if (! ledFeed.publish("off")) {
+          Serial.println(F("Failed LED OFF publish"));
+        } else {
+          Serial.println(F("OK LED OFF publish!"));
+        }
+      } 
+      else
+      {
+        Serial.print("Error, received: ");
+        Serial.println(receivedSubscription);
+      } 
     }
-  }*/
+  }
 
   /* Temperature read */
   DS18B20.requestTemperatures();
@@ -126,7 +157,7 @@ void loop() {
   }
   */
   
-  ESP.deepSleep(30000000);    // Sleep for 30 seconds
+  /*ESP.deepSleep(30000000);*/    // Sleep for 30 seconds
 }
 
 // Function to connect and reconnect as necessary to the MQTT server.
