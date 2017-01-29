@@ -139,7 +139,7 @@
         ```
 
     put the board into bootload mode:
-        Hold down the GPIO0 button, the red LED will be lit
+        Hold down the GPIO0 button, the red LED will be lit, dimly.
         While holding down GPIO0, click the RESET button
         Release RESET, then release GPIO0
         When you release the RESET button, the red LED will be lit dimly, this means its ready to bootload

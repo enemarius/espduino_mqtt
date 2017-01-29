@@ -1,2 +1,5 @@
 kits/MQTT-and-DHT-for-ESP8266.zip
 kits/pubsubclient-2.3.zip
+*.md~
+docs/
+kits/
